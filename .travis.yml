@@ -1,0 +1,23 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t mdhanapal/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+  - docker run mdhanapal/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t mdhanapal/multi-client ./client
+  - docker build -t mdhanapal/multi-nginx ./nginx
+  - docker build -t mdhanapal/multi-server ./server
+  - docker build -t mdhanapal/multi-worker ./worker
+  #login to docker hub
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  #take those images and push to docker hub
+
+  - docker push mdhanapal/multi-client
+  - docker push mdhanapal/multi-nginx
+  - docker push mdhanapal/multi-server
+  - docker push mdhanapal/multi-worker
